@@ -76,52 +76,62 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
+    
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
+
+  # terraform:
+  #   name: 'Terraform'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v1
     
-    - name: Setup Symfony
-      working-directory: ./ecs_terraform
+  #   - name: Setup Symfony
+  #     working-directory: ./ecs_terraform
       
-    - name: Terraform Init
-      id: init
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform init -input=false
+  #   - name: Terraform Init
+  #     id: init
+  #     env:
+  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     run: terraform init -input=false
     
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
+  #   - name: Terraform fmt
+  #     id: fmt
+  #     run: terraform fmt -check
+  #     continue-on-error: true
 
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
+  #   - name: Terraform Validate
+  #     id: validate
+  #     run: terraform validate -no-color
 
-    - name: Terraform Plan
-      id: plan
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
-      continue-on-error: true
+  #   - name: Terraform Plan
+  #     id: plan
+  #     env:
+  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
+  #     continue-on-error: true
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
+  #   - name: Terraform Apply
+  #     run: terraform apply -auto-approve
 
-    # - name: Fill in the new image ID in the Amazon ECS task definition
-    #   id: task-def
-    #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-    #   with:
-    #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
-    #     container-name: ${{ env.CONTAINER_NAME }}
-    #     image: ${{ steps.build-image.outputs.image }}
+  #   # - name: Fill in the new image ID in the Amazon ECS task definition
+  #   #   id: task-def
+  #   #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+  #   #   with:
+  #   #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
+  #   #     container-name: ${{ env.CONTAINER_NAME }}
+  #   #     image: ${{ steps.build-image.outputs.image }}
 
-    # - name: Deploy Amazon ECS task definition
-    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-    #   with:
-    #     task-definition: ${{ steps.task-def.outputs.task-definition }}
-    #     service: ${{ env.ECS_SERVICE }}
-    #     cluster: ${{ env.ECS_CLUSTER }}
-    #     wait-for-service-stability: true
+  #   # - name: Deploy Amazon ECS task definition
+  #   #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+  #   #   with:
+  #   #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+  #   #     service: ${{ env.ECS_SERVICE }}
+  #   #     cluster: ${{ env.ECS_CLUSTER }}
+  #   #     wait-for-service-stability: true
