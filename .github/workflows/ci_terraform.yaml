@@ -77,6 +77,46 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+    
+    - name: Setup Symfony
+      working-directory: ./ecs_terraform
+      
+    - name: Terraform Init
+      id: init
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: terraform init -input=false
+    
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
+      continue-on-error: true
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
     # - name: Fill in the new image ID in the Amazon ECS task definition
     #   id: task-def
     #   uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -92,210 +132,3 @@ jobs:
     #     service: ${{ env.ECS_SERVICE }}
     #     cluster: ${{ env.ECS_CLUSTER }}
     #     wait-for-service-stability: true
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# name: Build
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - 'main'
-# env:
-#   REGISTRY: "629496425275.dkr.ecr.us-east-1.amazonaws.com"
-#   IMAGE_NAME: "demo-app"
-#   # VERSION: 1.0
-#   CLUSTER_NAME: "k8s-dotnet-cluster"
-#   DEPLOYMENT_NAME: "react-project"
-
-# jobs:
-#   build:
-#     name: Build
-#     runs-on: self-hosted
-
-#     steps:
-#       # - name: Import Secrets
-#       #   uses: hashicorp/vault-action@v2.4.0
-#       #   with:
-#       #     url: http://127.0.0.1:8200
-#       #     tlsSkipVerify: true
-#       #     token: ${{ secrets.VAULT_TOKEN }}
-#       #     secrets: |
-#       #       secret/data/sonar SONAR_TOKEN ;
-#       #       secret/data/sonar SONAR_HOST_URL ;
-#       #       secret/data/sonar DIGITALOCEAN_ACCESS_TOKEN
-
-#       - uses: actions/checkout@v2
-#         with:
-#           fetch-depth: 0
-      
-#       # - name: Use Node.js 16.x
-#       #   uses: actions/setup-node@v1
-#       #   with:
-#       #     node-version: 16.x
-      
-#       # - name: Install NPM packages
-#       #   run: npm ci
-      
-#       # - name: Build project
-#       #   run: npm run build --if-present
-
-#       # - name: Run tests
-#       #   run: npm test
-  
-#       # Share artifact inside workflow
-#       # - name: Share artifact inside workflow
-#       #   uses: actions/upload-artifact@v1
-#       #   with:
-#       #     name: react-github-actions-build
-#       #     path: build
-
-#       # - name: SonarQube Code Analysis
-#       #   uses: sonarsource/sonarqube-scan-action@master
-#       #   env:
-#       #     SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-#       #     SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
-      
-#       # Fail the workflow if Qualit Gate status fails
-#       # - name: Sonar Quality Gate Check
-#       #   uses: sonarsource/sonarqube-quality-gate-action@master
-#       #   timeout-minutes: 5
-#       #   env:
-#       #     SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        
-#       - name: Build container image
-#         run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):latest .
-
-#       - name: Install doctl
-#         uses: digitalocean/action-doctl@v2
-#         with:
-#           token: ${{ env.DIGITALOCEAN_ACCESS_TOKEN }}
-    
-
-#       aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 629496425275.dkr.ecr.us-east-1.amazonaws.com
-
-
-#       - name: Log in to DigitalOcean Container Registry with short-lived credentials
-#         run: doctl registry login --expiry-seconds 600
-      
-#       - name: Remove all old images
-#         run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete-manifest $(echo $IMAGE_NAME) $(doctl registry repository list-tags $(echo $IMAGE_NAME) | grep -o "sha.*") --force; else echo "No repository"; fi
-
-#       - name: Push image to DigitalOcean Container Registry
-#         run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
-      
-#       # - name: Update deployment file
-#       #   run: REGISTRY=$(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|'${REGISTRY}'|' $GITHUB_WORKSPACE/config/deployment.yml
-
-#       # - name: Save DigitalOcean kubeconfig with short-lived credentials
-#       #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 $CLUSTER_NAME
-
-#       # - name: Deploy to DigitalOcean Kubernetes
-#       #   run: kubectl apply -f $GITHUB_WORKSPACE/config/deployment.yml
-
-#       # - name: Verify deployment
-#       #   run: kubectl rollout status deployment/$DEPLOYMENT_NAME
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# name: 'Terraform'
-
-# on:
-#   push:
-#     branches:
-#     - master
-#   pull_request:
-
-# jobs:
-#   terraform:
-#     name: 'Terraform'
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@v2
-
-#     - name: Setup Terraform
-#       uses: hashicorp/setup-terraform@v1
-      
-#     - name: Terraform Init
-#       id: init
-#       env:
-#         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#       run: terraform init -input=false
-    
-#     - name: Terraform fmt
-#       id: fmt
-#       run: terraform fmt -check
-#       continue-on-error: true
-
-#     - name: Terraform Validate
-#       id: validate
-#       run: terraform validate -no-color
-
-#     - name: Terraform Plan
-#       id: plan
-#       env:
-#         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#       run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
-#       continue-on-error: true
-    
-#     - uses: actions/github-script@v2
-#       name: Runs only on pull request
-#       if: github.event_name == 'pull_request'
-#       env:
-#         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-#       with:
-#         github-token: ${{ secrets.MY_GITHUB_TOKEN }}
-#         script: |
-#           const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-#           #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-#           #### Terraform Validation 🤖${{ steps.validate.outputs.stdout }}
-#           #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-          
-#           <details><summary>Show Plan</summary>
-          
-#           \`\`\`${process.env.PLAN}\`\`\`
-          
-#           </details>
-          
-#           *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`,  Workflow: \`${{ github.workflow }}\`*`;
-            
-#           github.issues.createComment({
-#             issue_number: context.issue.number,
-#             owner: context.repo.owner,
-#             repo: context.repo.repo,
-#             body: output
-#           })
-
-#     # - name: Terraform Apply
-#     #   if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-#     #   run: terraform apply -auto-approve
