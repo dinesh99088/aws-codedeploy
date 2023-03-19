@@ -48,7 +48,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: github-actions-json
-        path: $GITHUB_WORKSPACE/ecs_terraform/container-definitions/container-def.json
+        path: ecs_terraform/container-definitions/container-def.json
 
     # - name: Setup Terraform
     #   uses: hashicorp/setup-terraform@v1
