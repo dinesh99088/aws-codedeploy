@@ -1,7 +1,7 @@
 variable "key_name" {
   type        = string
   description = "The name for ssh key, used for aws_launch_configuration"
-  default     = "devops-demo-01"
+  default     = "DevServer"
 }
 
 variable "cluster_name" {
