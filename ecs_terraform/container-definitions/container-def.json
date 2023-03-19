@@ -1,7 +1,7 @@
 [
     {
       "name": "demo-devops",
-      "image": <IMAGE>,
+      "image": "<IMAGE>",
       "cpu": 10,
       "memory": 256,
       "essential": true,
