@@ -1,6 +1,6 @@
 [
     {
-      "name": "binpipe-devops",
+      "name": "demo-devops",
       "image": "629496425275.dkr.ecr.us-east-1.amazonaws.com/demo-app:latest",
       "cpu": 10,
       "memory": 256,

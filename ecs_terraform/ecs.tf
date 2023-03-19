@@ -3,7 +3,6 @@ resource "aws_ecs_cluster" "web-cluster" {
   capacity_providers = [aws_ecs_capacity_provider.test.name]
   tags = {
     "env"       = "dev"
-    "createdBy" = "binpipe"
   }
 }
 
@@ -31,7 +30,6 @@ resource "aws_ecs_task_definition" "task-definition-test" {
   network_mode          = "bridge"
   tags = {
     "env"       = "dev"
-    "createdBy" = "binpipe"
   }
 }
 
@@ -46,7 +44,7 @@ resource "aws_ecs_service" "service" {
   }
   load_balancer {
     target_group_arn = aws_lb_target_group.lb_target_group.arn
-    container_name   = "binpipe-devops"
+    container_name   = "demo-devops"
     container_port   = 80
   }
   # Optional: Allow external changes without Terraform plan difference(for example ASG)
@@ -61,6 +59,5 @@ resource "aws_cloudwatch_log_group" "log_group" {
   name = "/ecs/frontend-container"
   tags = {
     "env"       = "dev"
-    "createdBy" = "binpipe"
   }
 }
