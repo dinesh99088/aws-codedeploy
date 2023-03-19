@@ -42,12 +42,7 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        REGISTRY=$(echo $ECR_REGISTRY)/$(echo $ECR_REPOSITORY):$(echo $IMAGE_TAG) && sed -i 's|<IMAGE>|'${REGISTRY}'|' $GITHUB_WORKSPACE/ec2_terraform/container-definitions/container-def.json
-    
-    - name: Add profile credentials to ~/.aws/credentials
-      run: |
-        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile default
-        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile default
+        REGISTRY=$(echo $ECR_REGISTRY)/$(echo $ECR_REPOSITORY):$(echo $IMAGE_TAG) && sed -i 's|<IMAGE>|'${REGISTRY}'|' ./ec2_terraform/container-definitions/container-def.json
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
