@@ -1,0 +1,301 @@
+# This workflow will build and push a new container image to Amazon ECR,
+# and then will deploy a new task definition to Amazon ECS, when there is a push to the "main" branch.
+#
+# To use this workflow, you will need to complete the following set-up steps:
+#
+# 1. Create an ECR repository to store your images.
+#    For example: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
+#    Replace the value of the `ECR_REPOSITORY` environment variable in the workflow below with your repository's name.
+#    Replace the value of the `AWS_REGION` environment variable in the workflow below with your repository's region.
+#
+# 2. Create an ECS task definition, an ECS cluster, and an ECS service.
+#    For example, follow the Getting Started guide on the ECS console:
+#      https://us-east-2.console.aws.amazon.com/ecs/home?region=us-east-2#/firstRun
+#    Replace the value of the `ECS_SERVICE` environment variable in the workflow below with the name you set for the Amazon ECS service.
+#    Replace the value of the `ECS_CLUSTER` environment variable in the workflow below with the name you set for the cluster.
+#
+# 3. Store your ECS task definition as a JSON file in your repository.
+#    The format should follow the output of `aws ecs register-task-definition --generate-cli-skeleton`.
+#    Replace the value of the `ECS_TASK_DEFINITION` environment variable in the workflow below with the path to the JSON file.
+#    Replace the value of the `CONTAINER_NAME` environment variable in the workflow below with the name of the container
+#    in the `containerDefinitions` section of the task definition.
+#
+# 4. Store an IAM user access key in GitHub Actions secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+#    See the documentation for each action used below for the recommended IAM policies for this IAM user,
+#    and best practices on handling the access key credentials.
+
+name: Deploy to Amazon ECS
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: demo-app
+  # ECS_SERVICE: MY_ECS_SERVICE 
+  # ECS_CLUSTER: demo-app                 # set this to your Amazon ECS cluster name
+  # ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
+                                               # file, e.g. .aws/task-definition.json
+  # CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
+                                               # containerDefinitions section of your task definition
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    # - name: Fill in the new image ID in the Amazon ECS task definition
+    #   id: task-def
+    #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #   with:
+    #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
+    #     container-name: ${{ env.CONTAINER_NAME }}
+    #     image: ${{ steps.build-image.outputs.image }}
+
+    # - name: Deploy Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #   with:
+    #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+    #     service: ${{ env.ECS_SERVICE }}
+    #     cluster: ${{ env.ECS_CLUSTER }}
+    #     wait-for-service-stability: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# name: Build
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - 'main'
+# env:
+#   REGISTRY: "629496425275.dkr.ecr.us-east-1.amazonaws.com"
+#   IMAGE_NAME: "demo-app"
+#   # VERSION: 1.0
+#   CLUSTER_NAME: "k8s-dotnet-cluster"
+#   DEPLOYMENT_NAME: "react-project"
+
+# jobs:
+#   build:
+#     name: Build
+#     runs-on: self-hosted
+
+#     steps:
+#       # - name: Import Secrets
+#       #   uses: hashicorp/vault-action@v2.4.0
+#       #   with:
+#       #     url: http://127.0.0.1:8200
+#       #     tlsSkipVerify: true
+#       #     token: ${{ secrets.VAULT_TOKEN }}
+#       #     secrets: |
+#       #       secret/data/sonar SONAR_TOKEN ;
+#       #       secret/data/sonar SONAR_HOST_URL ;
+#       #       secret/data/sonar DIGITALOCEAN_ACCESS_TOKEN
+
+#       - uses: actions/checkout@v2
+#         with:
+#           fetch-depth: 0
+      
+#       # - name: Use Node.js 16.x
+#       #   uses: actions/setup-node@v1
+#       #   with:
+#       #     node-version: 16.x
+      
+#       # - name: Install NPM packages
+#       #   run: npm ci
+      
+#       # - name: Build project
+#       #   run: npm run build --if-present
+
+#       # - name: Run tests
+#       #   run: npm test
+  
+#       # Share artifact inside workflow
+#       # - name: Share artifact inside workflow
+#       #   uses: actions/upload-artifact@v1
+#       #   with:
+#       #     name: react-github-actions-build
+#       #     path: build
+
+#       # - name: SonarQube Code Analysis
+#       #   uses: sonarsource/sonarqube-scan-action@master
+#       #   env:
+#       #     SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+#       #     SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
+      
+#       # Fail the workflow if Qualit Gate status fails
+#       # - name: Sonar Quality Gate Check
+#       #   uses: sonarsource/sonarqube-quality-gate-action@master
+#       #   timeout-minutes: 5
+#       #   env:
+#       #     SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+        
+#       - name: Build container image
+#         run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):latest .
+
+#       - name: Install doctl
+#         uses: digitalocean/action-doctl@v2
+#         with:
+#           token: ${{ env.DIGITALOCEAN_ACCESS_TOKEN }}
+    
+
+#       aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 629496425275.dkr.ecr.us-east-1.amazonaws.com
+
+
+#       - name: Log in to DigitalOcean Container Registry with short-lived credentials
+#         run: doctl registry login --expiry-seconds 600
+      
+#       - name: Remove all old images
+#         run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete-manifest $(echo $IMAGE_NAME) $(doctl registry repository list-tags $(echo $IMAGE_NAME) | grep -o "sha.*") --force; else echo "No repository"; fi
+
+#       - name: Push image to DigitalOcean Container Registry
+#         run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+      
+#       # - name: Update deployment file
+#       #   run: REGISTRY=$(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|'${REGISTRY}'|' $GITHUB_WORKSPACE/config/deployment.yml
+
+#       # - name: Save DigitalOcean kubeconfig with short-lived credentials
+#       #   run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 $CLUSTER_NAME
+
+#       # - name: Deploy to DigitalOcean Kubernetes
+#       #   run: kubectl apply -f $GITHUB_WORKSPACE/config/deployment.yml
+
+#       # - name: Verify deployment
+#       #   run: kubectl rollout status deployment/$DEPLOYMENT_NAME
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# name: 'Terraform'
+
+# on:
+#   push:
+#     branches:
+#     - master
+#   pull_request:
+
+# jobs:
+#   terraform:
+#     name: 'Terraform'
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v2
+
+#     - name: Setup Terraform
+#       uses: hashicorp/setup-terraform@v1
+      
+#     - name: Terraform Init
+#       id: init
+#       env:
+#         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       run: terraform init -input=false
+    
+#     - name: Terraform fmt
+#       id: fmt
+#       run: terraform fmt -check
+#       continue-on-error: true
+
+#     - name: Terraform Validate
+#       id: validate
+#       run: terraform validate -no-color
+
+#     - name: Terraform Plan
+#       id: plan
+#       env:
+#         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
+#       continue-on-error: true
+    
+#     - uses: actions/github-script@v2
+#       name: Runs only on pull request
+#       if: github.event_name == 'pull_request'
+#       env:
+#         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+#       with:
+#         github-token: ${{ secrets.MY_GITHUB_TOKEN }}
+#         script: |
+#           const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+#           #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+#           #### Terraform Validation 🤖${{ steps.validate.outputs.stdout }}
+#           #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          
+#           <details><summary>Show Plan</summary>
+          
+#           \`\`\`${process.env.PLAN}\`\`\`
+          
+#           </details>
+          
+#           *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`,  Workflow: \`${{ github.workflow }}\`*`;
+            
+#           github.issues.createComment({
+#             issue_number: context.issue.number,
+#             owner: context.repo.owner,
+#             repo: context.repo.repo,
+#             body: output
+#           })
+
+#     # - name: Terraform Apply
+#     #   if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+#     #   run: terraform apply -auto-approve
