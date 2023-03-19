@@ -125,6 +125,7 @@ jobs:
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
+      working-directory: ./ecs_terraform
 
   #   # - name: Fill in the new image ID in the Amazon ECS task definition
   #   #   id: task-def
