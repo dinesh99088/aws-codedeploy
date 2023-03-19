@@ -76,56 +76,47 @@ jobs:
     #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
     #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
     #     echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-    
+
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    # env:
+    #   working-directory: ./ecs_terraform
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
-    
-    - name: Change Working Directory
-      working-directory: ./ecs_terraform
-    
+      
     - name: Terraform Init
       id: init
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: terraform init -input=false
-
-  # terraform:
-  #   name: 'Terraform'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v2
-
-  #   - name: Setup Terraform
-  #     uses: hashicorp/setup-terraform@v1
+      working-directory: ./ecs_terraform
     
-  #   - name: Setup Symfony
-  #     working-directory: ./ecs_terraform
-      
-  #   - name: Terraform Init
-  #     id: init
-  #     env:
-  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #     run: terraform init -input=false
-    
-  #   - name: Terraform fmt
-  #     id: fmt
-  #     run: terraform fmt -check
-  #     continue-on-error: true
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+      working-directory: ./ecs_terraform
 
-  #   - name: Terraform Validate
-  #     id: validate
-  #     run: terraform validate -no-color
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+      working-directory: ./ecs_terraform
 
-  #   - name: Terraform Plan
-  #     id: plan
-  #     env:
-  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #     run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
-  #     continue-on-error: true
+    - name: Terraform Plan
+      id: plan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: terraform plan -no-color -var="key_name=ecs_workshop" -var="cluster_name=ecs_workshop_cluster"
+      continue-on-error: true
+      working-directory: ./ecs_terraform
 
   #   - name: Terraform Apply
   #     run: terraform apply -auto-approve
