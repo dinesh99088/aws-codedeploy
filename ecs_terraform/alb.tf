@@ -38,8 +38,8 @@ resource "aws_lb_target_group" "lb_target_group" {
   vpc_id      = data.aws_vpc.main.id
   health_check {
     path                = "/"
-    healthy_threshold   = 2
-    unhealthy_threshold = 10
+    healthy_threshold   = 1
+    unhealthy_threshold = 2
     timeout             = 60
     interval            = 300
     matcher             = "200,301,302"

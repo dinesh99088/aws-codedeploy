@@ -9,9 +9,3 @@ FROM nginx:alpine
 COPY --from=react-build /app/build /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-
-# To build the image
-# docker build -t workshop:latest .
-
-# To create the container
-# docker run -it -p 8080:80 workshop:latest

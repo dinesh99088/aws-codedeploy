@@ -21,7 +21,7 @@ const App = () => {
       </div>
       <ColorPalette currentColor={currentColor} changeColor={setCurrentColor}/>
       <div className="resources">
-        <span>Digital Coloring book by <a className="link" href="https://uxdesign.cc/5-steps-to-create-a-simple-digital-coloring-book-in-react-3d4f5b2af822">Alison Quaglia</a> on <a className="link" href="https://github.com/hylobates-lar/color-test">Github</a></span>
+        <span>Digital Coloring book by random app</span>
       </div>
     </div>
   )
