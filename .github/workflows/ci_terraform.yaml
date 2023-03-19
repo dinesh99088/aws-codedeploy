@@ -39,47 +39,53 @@ jobs:
         # Build a docker container and
         # push it to ECR so that it can
         # be deployed to ECS.
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        REGISTRY=$(echo $ECR_REGISTRY)/$(echo $ECR_REPOSITORY):$(echo $IMAGE_TAG) && sed -i 's|<IMAGE>|'${REGISTRY}'|' ./ec2_terraform/container-definitions/container-def.json
+        # docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        # echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        REGISTRY=$(echo $ECR_REGISTRY)/$(echo $ECR_REPOSITORY):$(echo $IMAGE_TAG) && sed -i 's|<IMAGE>|'${REGISTRY}'|' $GITHUB_WORKSPACE/ecs_terraform/container-definitions/container-def.json
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+    - name: Share artifact inside workflow
+      uses: actions/upload-artifact@v1
       with:
-        terraform_version: 1.1.7
+        name: github-actions-json
+        path: $GITHUB_WORKSPACE/ecs_terraform/container-definitions/container-def.json
+
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v1
+    #   with:
+    #     terraform_version: 1.1.7
       
-    - name: Terraform Init
-      id: init
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform init -input=false
-      working-directory: ./ecs_terraform
+    # - name: Terraform Init
+    #   id: init
+    #   env:
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #   run: terraform init -input=false
+    #   working-directory: ./ecs_terraform
     
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-      working-directory: ./ecs_terraform
+    # - name: Terraform fmt
+    #   id: fmt
+    #   run: terraform fmt -check
+    #   continue-on-error: true
+    #   working-directory: ./ecs_terraform
 
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-      working-directory: ./ecs_terraform
+    # - name: Terraform Validate
+    #   id: validate
+    #   run: terraform validate -no-color
+    #   working-directory: ./ecs_terraform
 
-    - name: Terraform Plan
-      id: plan
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform plan -no-color -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
-      continue-on-error: true
-      working-directory: ./ecs_terraform
+    # - name: Terraform Plan
+    #   id: plan
+    #   env:
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #   run: terraform plan -no-color -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
+    #   continue-on-error: true
+    #   working-directory: ./ecs_terraform
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
-      working-directory: ./ecs_terraform
+    # - name: Terraform Apply
+    #   run: terraform apply -auto-approve -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
+    #   working-directory: ./ecs_terraform
     
     # - name: Terraform destroy
     #   run: terraform destroy -auto-approve -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
