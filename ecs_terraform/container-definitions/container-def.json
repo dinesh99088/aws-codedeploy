@@ -1,7 +1,7 @@
 [
     {
       "name": "demo-devops",
-      "image": "629496425275.dkr.ecr.us-east-1.amazonaws.com/demo-app:latest",
+      "image": "629496425275.dkr.ecr.us-east-1.amazonaws.com/demo-app:df847bffd957bfcdddee79c833cd74a2c38e97b7",
       "cpu": 10,
       "memory": 256,
       "essential": true,
