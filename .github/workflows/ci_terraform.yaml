@@ -80,9 +80,9 @@ jobs:
       continue-on-error: true
       working-directory: ./ecs_terraform
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
-      working-directory: ./ecs_terraform
+    # - name: Terraform Apply
+    #   run: terraform apply -auto-approve -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
+    #   working-directory: ./ecs_terraform
     
     - name: Terraform destroy
       run: terraform destroy -auto-approve -var="key_name=DevServer" -var="cluster_name=ecs_workshop_cluster"
