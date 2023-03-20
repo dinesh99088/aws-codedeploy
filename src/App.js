@@ -15,7 +15,7 @@ const App = () => {
 
   return (
     <div className="App">
-      <div className="title">React web App</div>
+      <div className="title">This is riyaz React web App</div>
       <div className= "flower">
         <Flower fillColors={fillColors} onFill={onFillColor} />
       </div>
